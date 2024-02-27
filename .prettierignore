@@ -1,6 +1,6 @@
 eslintrc.json
 node_modules
-prettierrc.json
+.prettierrc
 package-lock.json
 package.json
 tsconfig.json
