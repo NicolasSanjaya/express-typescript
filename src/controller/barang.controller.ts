@@ -35,7 +35,7 @@ export const getBarangId = async (
   try {
     const id = Number(req.params.id)
     const data = await getBarangById(id)
-    return res.status(200).json({ message: 'Success Get All Data', data })
+    return res.status(200).json({ message: 'Success Get Data', data })
   } catch (error: Error | unknown) {
     next(
       new Error(

@@ -6,7 +6,12 @@ import {
 import { createUser, userLogin } from '../services/user.service'
 import bcrypt, { compare } from 'bcrypt'
 import { encrypt, userCompare } from '../utils/bcrypt'
-import { generateAccessToken, generateRefreshToken } from '../utils/jwt'
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  parseJwt,
+  verifyAccessToken
+} from '../utils/jwt'
 import UserType from '../types/user.type'
 
 export const registerUser = async (
@@ -73,6 +78,52 @@ export const loginUser = async (
     return res
       .status(201)
       .json({ message: 'Success', data: user, token, refreshToken })
+  } catch (error: Error | unknown) {
+    next(new Error('Error' + String((error as Error).message)))
+  }
+}
+
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers.authorization
+    const token = authHeader?.split(' ')[1]
+    if (token === undefined) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Anda harus login terlebih dahulu',
+        data: null
+      })
+    }
+    const verify = verifyAccessToken(token)
+    if (!verify) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Anda harus login terlebih dahulu',
+        data: null
+      })
+    }
+    const data = parseJwt(token)
+    const user = await userLogin(data)
+    if (user === null) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Anda harus login terlebih dahulu',
+        data: null
+      })
+    }
+    user.password = 'xxx'
+    const newToken = generateAccessToken(user)
+    const newRefreshToken = generateRefreshToken(user)
+    return res.status(201).json({
+      message: 'Success',
+      data: user,
+      token: newToken,
+      refreshToken: newRefreshToken
+    })
   } catch (error: Error | unknown) {
     next(new Error('Error' + String((error as Error).message)))
   }
